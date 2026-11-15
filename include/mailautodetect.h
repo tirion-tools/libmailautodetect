@@ -44,7 +44,7 @@ typedef void (*mailautodetect_visit)(void* ctx, const mailautodetect_config* con
 bool mailautodetect_ispdb_lookup(mailautodetect_str domain, mailautodetect_str email_domain,
                                   mailautodetect_visit visit, void* ctx);
 
-/* Lookup by MX (Thunderbird's fetchConfigForMX): the MX host's registrable domain, then one label more. */
+/* Lookup by MX (Thunderbird's fetchConfigForMX): the MX host without its leftmost label, then its registrable domain. */
 bool mailautodetect_ispdb_by_mx(mailautodetect_str mx_host, mailautodetect_str mx_registrable,
                                  mailautodetect_str email_domain, mailautodetect_visit visit, void* ctx);
 

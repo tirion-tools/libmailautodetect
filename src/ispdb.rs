@@ -74,22 +74,27 @@ pub fn lookup(domain: &str, email_domain: &str) -> Option<BuiltinConfig> {
     })
 }
 
-/// Lookup by MX, as Thunderbird's `fetchConfigForMX`: the lowest-preference MX host's registrable
-/// domain, then that domain with the MX host's next label (`mx.a.b.example.com` with registrable
-/// `example.com` → `example.com`, then `b.example.com`). The caller resolves MX and derives
-/// `mx_registrable` with its Public Suffix List.
+/// Lookup by MX, as Thunderbird's `fetchConfigForMX`: first the lowest-preference MX host without
+/// its leftmost label, then the MX host's registrable domain (`x.mail.protection.outlook.com` with
+/// registrable `outlook.com` → `mail.protection.outlook.com`, then `outlook.com`). The first step
+/// tells hosted business domains apart from the consumer service of the same company. The caller
+/// resolves MX and derives `mx_registrable` with its Public Suffix List.
 pub fn by_mx(mx_host: &str, mx_registrable: &str, email_domain: &str) -> Option<BuiltinConfig> {
     if mx_registrable.is_empty() {
         return None;
     }
     let rest = mx_host.strip_suffix(mx_registrable)?;
-    if let Some(c) = lookup(mx_registrable, email_domain) {
+    if !(rest.is_empty() || rest.ends_with('.')) {
+        return None; // not a suffix on a label boundary
+    }
+    // The MX host minus its leftmost label, when that is still below the registrable domain.
+    if let Some((_, parent)) = mx_host.split_once('.')
+        && parent.len() > mx_registrable.len()
+        && let Some(c) = lookup(parent, email_domain)
+    {
         return Some(c);
     }
-    // The label of mx_host directly left of the registrable domain, if mx_host has one more.
-    let head = rest.strip_suffix('.').filter(|h| !h.is_empty())?;
-    let dot = head.rfind('.')?;
-    lookup(&mx_host[dot + 1..], email_domain)
+    lookup(mx_registrable, email_domain)
 }
 
 #[cfg(test)]
@@ -164,5 +169,34 @@ mod tests {
         assert!(by_mx("mx.example.test", "example.test", "example.test").is_none());
         assert!(by_mx("mx.other.test", "example.test", "example.test").is_none()); // not a suffix
         assert!(by_mx("google.com", "", "example.edu").is_none());
+        assert!(by_mx("mx.notgoogle.com", "google.com", "example.edu").is_none()); // no label boundary
+    }
+
+    #[test]
+    fn mx_lookup_tells_microsoft_365_tenants_from_the_consumer_service() {
+        // A Microsoft 365 tenant: the MX host minus its leftmost label is in office365.com.xml.
+        let t = by_mx(
+            "contoso-com.mail.protection.outlook.com",
+            "outlook.com",
+            "contoso.com",
+        )
+        .expect("Microsoft 365 tenant MX");
+        assert_eq!(t.file, "office365.com.xml");
+        assert_eq!(t.matched, "mail.protection.outlook.com");
+        // The consumer service (Outlook.com), whose MX parent is listed in hotmail.com.xml.
+        let c = by_mx(
+            "eur.olc.protection.outlook.com",
+            "outlook.com",
+            "outlook.com",
+        )
+        .expect("consumer outlook.com MX");
+        assert_eq!(c.file, "hotmail.com.xml");
+        assert_eq!(c.matched, "olc.protection.outlook.com");
+        // No deeper entry: the registrable domain answers.
+        let r = by_mx("mx1.eu.outlook.com", "outlook.com", "outlook.com").expect("registrable");
+        assert_eq!(
+            (r.file, r.matched.as_str()),
+            ("hotmail.com.xml", "outlook.com")
+        );
     }
 }
