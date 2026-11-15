@@ -1,0 +1,1 @@
+<?xml version="1.0"?><Autodiscover xmlns="a"><Response xmlns="b"><Account><Action>settings</Action><Protocol><Type>IMAP</Type><Server>imap.%EMAILDOMAIN%</Server><Port>993</Port><SSL>on</SSL></Protocol><Protocol><Type>SMTP</Type><Server>smtp.x.test</Server><Port>587</Port><Encryption>TLS</Encryption></Protocol></Account></Response></Autodiscover>

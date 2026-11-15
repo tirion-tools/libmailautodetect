@@ -1,0 +1,24 @@
+# cargo-fuzz target of mailautodetect. Run:
+#   RUSTC_BOOTSTRAP=1 cargo fuzz run --fuzz-dir fuzz autoconfig -- -dict=fuzz/autoconfig.dict
+[package]
+name = "mailautodetect-fuzz"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+mailautodetect = { path = ".." }
+
+[[bin]]
+name = "autoconfig"
+path = "fuzz_targets/autoconfig.rs"
+test = false
+doc = false
+bench = false
+
+[workspace]
+members = ["."]
