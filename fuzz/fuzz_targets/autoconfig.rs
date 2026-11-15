@@ -5,13 +5,16 @@
 //!  4. the clientConfig mapper only emits validated hosts and accepted ports.
 #![no_main]
 
-use mailautodetect::{self as autoconfig, xml};
 use libfuzzer_sys::fuzz_target;
+use mailautodetect::{self as autoconfig, xml};
 
 fn check_tree(e: &xml::Element, lim: &xml::Limits, depth: usize) -> usize {
     assert!(depth <= lim.max_depth, "depth bound");
     assert!(e.name.len() <= lim.max_name_len, "name bound");
-    assert!(e.attrs.len() <= lim.max_attrs_per_element, "attr count bound");
+    assert!(
+        e.attrs.len() <= lim.max_attrs_per_element,
+        "attr count bound"
+    );
     let mut n = 1;
     for c in &e.children {
         match c {
@@ -24,7 +27,9 @@ fn check_tree(e: &xml::Element, lim: &xml::Limits, depth: usize) -> usize {
 
 fuzz_target!(|data: &[u8]| {
     let lim = xml::Limits::AUTOCONFIG;
-    let Ok((root, st)) = xml::parse(data, lim) else { return };
+    let Ok((root, st)) = xml::parse(data, lim) else {
+        return;
+    };
     assert_eq!(check_tree(&root, &lim, 1), st.elements, "element count");
     assert!(st.elements <= lim.max_elements);
     let ser = xml::serialize(&root);

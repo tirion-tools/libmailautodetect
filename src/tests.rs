@@ -25,10 +25,17 @@ fn utf16le(s: &str, bom: bool) -> Vec<u8> {
 fn lol() -> Vec<u8> {
     let mut ents = String::from("<!ENTITY lol \"lol\">");
     for i in 1..10 {
-        let r = if i > 1 { format!("&lol{};", i - 1) } else { "&lol;".into() };
+        let r = if i > 1 {
+            format!("&lol{};", i - 1)
+        } else {
+            "&lol;".into()
+        };
         ents.push_str(&format!("<!ENTITY lol{i} \"{}\">", r.repeat(10)));
     }
-    format!("<?xml version=\"1.0\"?><!DOCTYPE clientConfig [{ents}]><clientConfig>&lol9;</clientConfig>").into_bytes()
+    format!(
+        "<?xml version=\"1.0\"?><!DOCTYPE clientConfig [{ents}]><clientConfig>&lol9;</clientConfig>"
+    )
+    .into_bytes()
 }
 
 fn cases() -> Vec<(&'static str, Vec<u8>, &'static str)> {
@@ -54,48 +61,175 @@ fn cases() -> Vec<(&'static str, Vec<u8>, &'static str)> {
         ("valid_minimal", b(GOOD), "ok"),
         ("valid_bom", bom, "ok"),
         ("valid_no_decl", b(body()), "ok"),
-        ("valid_cdata_comment", g("<domain>x.test</domain>", "<!-- c --><domain><![CDATA[x.test]]></domain>"), "ok"),
-        ("valid_numeric_refs", g("x.test</domain>", "&#120;&#x2e;test</domain>"), "ok"),
+        (
+            "valid_cdata_comment",
+            g(
+                "<domain>x.test</domain>",
+                "<!-- c --><domain><![CDATA[x.test]]></domain>",
+            ),
+            "ok",
+        ),
+        (
+            "valid_numeric_refs",
+            g("x.test</domain>", "&#120;&#x2e;test</domain>"),
+            "ok",
+        ),
         ("billion_laughs", lol(), "doctype"),
-        ("xxe_system_entity", b("<?xml version=\"1.0\"?><!DOCTYPE c [<!ENTITY xxe SYSTEM \"file:///etc/passwd\">]><clientConfig>&xxe;</clientConfig>"), "doctype"),
-        ("xxe_parameter_entity", b("<!DOCTYPE c [<!ENTITY % p SYSTEM \"http://evil.test/x.dtd\"> %p;]><clientConfig/>"), "doctype"),
-        ("doctype_public", b("<!DOCTYPE clientConfig PUBLIC \"-//X//DTD X//EN\" \"http://evil.test/x.dtd\"><clientConfig/>"), "doctype"),
-        ("doctype_inside_root", b("<clientConfig><!DOCTYPE x></clientConfig>"), "doctype"),
-        ("undeclared_entity", b("<clientConfig>&xxe;</clientConfig>"), "bad_entity"),
-        ("entity_nul_ref", b("<clientConfig>&#0;</clientConfig>"), "bad_entity"),
-        ("entity_surrogate_ref", b("<clientConfig>&#xD800;</clientConfig>"), "bad_entity"),
-        ("entity_huge_ref", b("<clientConfig>&#99999999999;</clientConfig>"), "bad_entity"),
-        ("xinclude_ignored", g("<domain>", "<xi:include xmlns:xi=\"http://www.w3.org/2001/XInclude\" href=\"file:///etc/passwd\"/><domain>"), "ok"),
-        ("pi_stylesheet", b("<?xml version=\"1.0\"?><?xml-stylesheet href=\"http://evil.test/x.xsl\"?><clientConfig/>"), "processing_instruction"),
-        ("pi_in_body", b("<clientConfig><?php echo 1; ?></clientConfig>"), "processing_instruction"),
-        ("utf16_bom", utf16le(&GOOD.replace("encoding=\"UTF-8\"", "encoding=\"UTF-16\""), true), "not_utf8"),
+        (
+            "xxe_system_entity",
+            b(
+                "<?xml version=\"1.0\"?><!DOCTYPE c [<!ENTITY xxe SYSTEM \"file:///etc/passwd\">]><clientConfig>&xxe;</clientConfig>",
+            ),
+            "doctype",
+        ),
+        (
+            "xxe_parameter_entity",
+            b("<!DOCTYPE c [<!ENTITY % p SYSTEM \"http://evil.test/x.dtd\"> %p;]><clientConfig/>"),
+            "doctype",
+        ),
+        (
+            "doctype_public",
+            b(
+                "<!DOCTYPE clientConfig PUBLIC \"-//X//DTD X//EN\" \"http://evil.test/x.dtd\"><clientConfig/>",
+            ),
+            "doctype",
+        ),
+        (
+            "doctype_inside_root",
+            b("<clientConfig><!DOCTYPE x></clientConfig>"),
+            "doctype",
+        ),
+        (
+            "undeclared_entity",
+            b("<clientConfig>&xxe;</clientConfig>"),
+            "bad_entity",
+        ),
+        (
+            "entity_nul_ref",
+            b("<clientConfig>&#0;</clientConfig>"),
+            "bad_entity",
+        ),
+        (
+            "entity_surrogate_ref",
+            b("<clientConfig>&#xD800;</clientConfig>"),
+            "bad_entity",
+        ),
+        (
+            "entity_huge_ref",
+            b("<clientConfig>&#99999999999;</clientConfig>"),
+            "bad_entity",
+        ),
+        (
+            "xinclude_ignored",
+            g(
+                "<domain>",
+                "<xi:include xmlns:xi=\"http://www.w3.org/2001/XInclude\" href=\"file:///etc/passwd\"/><domain>",
+            ),
+            "ok",
+        ),
+        (
+            "pi_stylesheet",
+            b(
+                "<?xml version=\"1.0\"?><?xml-stylesheet href=\"http://evil.test/x.xsl\"?><clientConfig/>",
+            ),
+            "processing_instruction",
+        ),
+        (
+            "pi_in_body",
+            b("<clientConfig><?php echo 1; ?></clientConfig>"),
+            "processing_instruction",
+        ),
+        (
+            "utf16_bom",
+            utf16le(
+                &GOOD.replace("encoding=\"UTF-8\"", "encoding=\"UTF-16\""),
+                true,
+            ),
+            "not_utf8",
+        ),
         ("utf16_no_bom", utf16le(body(), false), "bad_name"),
         ("latin1_decl", g("UTF-8", "ISO-8859-1"), "encoding"),
-        ("invalid_utf8", b"<clientConfig>\xff\xfe</clientConfig>".to_vec(), "not_utf8"),
-        ("nul_byte", b"<clientConfig>a\x00b</clientConfig>".to_vec(), "bad_char"),
-        ("control_char", b"<clientConfig>a\x07b</clientConfig>".to_vec(), "bad_char"),
+        (
+            "invalid_utf8",
+            b"<clientConfig>\xff\xfe</clientConfig>".to_vec(),
+            "not_utf8",
+        ),
+        (
+            "nul_byte",
+            b"<clientConfig>a\x00b</clientConfig>".to_vec(),
+            "bad_char",
+        ),
+        (
+            "control_char",
+            b"<clientConfig>a\x07b</clientConfig>".to_vec(),
+            "bad_char",
+        ),
         ("oversize_1mib", oversize.into_bytes(), "too_large"),
         ("size_at_limit_plus_1", at_limit, "too_large"),
-        ("deep_nesting_100", format!("{}{}", "<a>".repeat(100), "</a>".repeat(100)).into_bytes(), "depth"),
-        ("deep_nesting_100k", "<a>".repeat(20000).into_bytes(), "depth"),
-        ("too_many_elements", format!("<r>{}</r>", "<a/>".repeat(1100)).into_bytes(), "too_many_elements"),
-        ("too_many_attrs", format!("<r {}/>", attrs.join(" ")).into_bytes(), "too_many_attrs"),
-        ("duplicate_attr", b("<r a=\"1\" a=\"2\"/>"), "duplicate_attr"),
-        ("long_name", format!("<{}/>", "a".repeat(65)).into_bytes(), "name_too_long"),
-        ("long_attr", format!("<r a=\"{}\"/>", "x".repeat(600)).into_bytes(), "attr_too_long"),
-        ("long_text", format!("<r>{}</r>", "x".repeat(3000)).into_bytes(), "text_too_long"),
+        (
+            "deep_nesting_100",
+            format!("{}{}", "<a>".repeat(100), "</a>".repeat(100)).into_bytes(),
+            "depth",
+        ),
+        (
+            "deep_nesting_100k",
+            "<a>".repeat(20000).into_bytes(),
+            "depth",
+        ),
+        (
+            "too_many_elements",
+            format!("<r>{}</r>", "<a/>".repeat(1100)).into_bytes(),
+            "too_many_elements",
+        ),
+        (
+            "too_many_attrs",
+            format!("<r {}/>", attrs.join(" ")).into_bytes(),
+            "too_many_attrs",
+        ),
+        (
+            "duplicate_attr",
+            b("<r a=\"1\" a=\"2\"/>"),
+            "duplicate_attr",
+        ),
+        (
+            "long_name",
+            format!("<{}/>", "a".repeat(65)).into_bytes(),
+            "name_too_long",
+        ),
+        (
+            "long_attr",
+            format!("<r a=\"{}\"/>", "x".repeat(600)).into_bytes(),
+            "attr_too_long",
+        ),
+        (
+            "long_text",
+            format!("<r>{}</r>", "x".repeat(3000)).into_bytes(),
+            "text_too_long",
+        ),
         ("total_text", total.into_bytes(), "total_text_too_long"),
-        ("entity_text_growth", format!("<r>{}</r>", "&amp;".repeat(2100)).into_bytes(), "text_too_long"),
+        (
+            "entity_text_growth",
+            format!("<r>{}</r>", "&amp;".repeat(2100)).into_bytes(),
+            "text_too_long",
+        ),
         ("mismatched_tags", b("<a><b></a></b>"), "mismatched_end_tag"),
         ("two_roots", b("<a/><b/>"), "trailing_content"),
         ("text_after_root", b("<a/>junk"), "trailing_content"),
         ("unterminated", b("<clientConfig><a>"), "eof"),
         ("empty", vec![], "no_root"),
         ("lt_in_attr", b("<r a=\"<\"/>"), "unexpected"),
-        ("double_dash_comment", b("<r><!-- a -- b --></r>"), "unexpected"),
+        (
+            "double_dash_comment",
+            b("<r><!-- a -- b --></r>"),
+            "unexpected",
+        ),
         ("cdata_end_in_text", b("<r>a]]>b</r>"), "unexpected"),
         ("non_ascii_name", b("<rü/>"), "unexpected"),
-        ("xml_decl_not_first", b(" <?xml version=\"1.0\"?><r/>"), "processing_instruction"),
+        (
+            "xml_decl_not_first",
+            b(" <?xml version=\"1.0\"?><r/>"),
+            "processing_instruction",
+        ),
     ]
 }
 
@@ -131,10 +265,23 @@ fn drops_unbrokered_and_bad_entries() {
     let c = parse(doc.as_bytes(), "x.test").unwrap();
     assert!(!c.is_usable());
     assert_eq!(c.dropped, vec!["incoming_pop3", "bad_host"]);
-    let c = parse(GOOD.replace("<port>993</port>", "<port>1993</port>").as_bytes(), "x.test").unwrap();
+    let c = parse(
+        GOOD.replace("<port>993</port>", "<port>1993</port>")
+            .as_bytes(),
+        "x.test",
+    )
+    .unwrap();
     assert_eq!(c.dropped, vec!["port_not_brokered"]);
-    assert!(matches!(parse(b"<html/>", "x.test"), Err(ParseError::Schema("root_not_clientConfig"))));
-    assert_eq!(parse(b"<!DOCTYPE html><html/>", "x.test").unwrap_err().to_string(), "xml:doctype");
+    assert!(matches!(
+        parse(b"<html/>", "x.test"),
+        Err(ParseError::Schema("root_not_clientConfig"))
+    ));
+    assert_eq!(
+        parse(b"<!DOCTYPE html><html/>", "x.test")
+            .unwrap_err()
+            .to_string(),
+        "xml:doctype"
+    );
 }
 
 #[test]
@@ -161,7 +308,10 @@ fn url(s: &str) -> Url {
 fn approved_url_policy() {
     for (u, ok) in [
         ("https://autoconfig.x.test/mail/config-v1.1.xml", true),
-        ("https://x.test/.well-known/autoconfig/mail/config-v1.1.xml#f", true),
+        (
+            "https://x.test/.well-known/autoconfig/mail/config-v1.1.xml#f",
+            true,
+        ),
         ("http://autoconfig.x.test/mail/config-v1.1.xml", false),
         ("https://autoconfig.x.test:8443/mail/config-v1.1.xml", false),
         ("https://u:p@autoconfig.x.test/", false),
@@ -187,15 +337,29 @@ fn redirect_rules() {
     }
     assert_eq!(next_hop(&u, "/r3", 3), Err("too_many_redirects"));
     // https -> http refused.
-    assert_eq!(next_hop(&start, "http://x.test/c.xml", 0), Err("redirect_https_to_http"));
+    assert_eq!(
+        next_hop(&start, "http://x.test/c.xml", 0),
+        Err("redirect_https_to_http")
+    );
     // Explicit port refused.
-    assert_eq!(next_hop(&start, "https://x.test:8443/c.xml", 0), Err("explicit port not allowed"));
+    assert_eq!(
+        next_hop(&start, "https://x.test:8443/c.xml", 0),
+        Err("explicit port not allowed")
+    );
     // IP literal refused; private names are refused by the caller's address policy.
-    assert_eq!(next_hop(&start, "https://10.0.0.5/c.xml", 0), Err("IP literal not allowed"));
+    assert_eq!(
+        next_hop(&start, "https://10.0.0.5/c.xml", 0),
+        Err("IP literal not allowed")
+    );
     // A cross-domain redirect is followed; the caller asks the user to confirm it.
     assert_eq!(
-        next_hop(&start, "https://autoconfig.hoster.test/c.xml", 0).unwrap().host_str(),
+        next_hop(&start, "https://autoconfig.hoster.test/c.xml", 0)
+            .unwrap()
+            .host_str(),
         Some("autoconfig.hoster.test")
     );
-    assert_eq!(next_hop(&start, "javascript:alert(1)", 0), Err("https only"));
+    assert_eq!(
+        next_hop(&start, "javascript:alert(1)", 0),
+        Err("https only")
+    );
 }

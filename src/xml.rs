@@ -53,10 +53,19 @@ impl Element {
         local(&self.name)
     }
     pub fn attr(&self, name: &str) -> Option<&str> {
-        self.attrs.iter().find(|(k, _)| local(k) == name).map(|(_, v)| v.as_str())
+        self.attrs
+            .iter()
+            .find(|(k, _)| local(k) == name)
+            .map(|(_, v)| v.as_str())
     }
     pub fn elements(&self) -> impl Iterator<Item = &Element> {
-        self.children.iter().filter_map(|n| if let Node::Element(e) = n { Some(e) } else { None })
+        self.children.iter().filter_map(|n| {
+            if let Node::Element(e) = n {
+                Some(e)
+            } else {
+                None
+            }
+        })
     }
     pub fn child(&self, name: &str) -> Option<&Element> {
         self.elements().find(|e| e.local() == name)
@@ -403,7 +412,11 @@ impl<'a> P<'a> {
             return Err(Error::TooManyElements);
         }
         let name = self.name()?;
-        let mut e = Element { name, attrs: Vec::new(), children: Vec::new() };
+        let mut e = Element {
+            name,
+            attrs: Vec::new(),
+            children: Vec::new(),
+        };
         loop {
             let had_ws = self.ws();
             match self.peek() {
@@ -566,9 +579,24 @@ pub fn parse(input: &[u8], lim: Limits) -> Result<(Element, Stats), Error> {
     let input = input.strip_prefix(b"\xEF\xBB\xBF").unwrap_or(input);
     // UTF-16/32 BOMs or NUL-interleaved text fail here (or as BadChar for U+0000).
     let s = std::str::from_utf8(input).map_err(|_| Error::NotUtf8)?;
-    let mut p = P { s, b: input, i: 0, lim, elements: 0, total_text: 0, max_depth_seen: 0 };
+    let mut p = P {
+        s,
+        b: input,
+        i: 0,
+        lim,
+        elements: 0,
+        total_text: 0,
+        max_depth_seen: 0,
+    };
     let root = p.document()?;
-    Ok((root, Stats { elements: p.elements, max_depth: p.max_depth_seen.max(1), bytes: input.len() }))
+    Ok((
+        root,
+        Stats {
+            elements: p.elements,
+            max_depth: p.max_depth_seen.max(1),
+            bytes: input.len(),
+        },
+    ))
 }
 
 /// Canonical serialisation (used by the fuzz round-trip check). Iterative, like the parser.
