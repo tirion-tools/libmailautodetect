@@ -1,5 +1,5 @@
-//! Strict bounded XML parser (45/45 hostile cases, 43.9M fuzz executions clean).
-//! Strict, bounded XML subset parser for autoconfig (config-v1.1.xml) and Autodiscover (POX) documents.
+//! Strict, bounded XML subset parser for autoconfig (config-v1.1.xml) and Autodiscover (POX) documents
+//! (45/45 hostile cases, 43.9M fuzz executions clean).
 //!
 //! Accepted: UTF-8 only (optional BOM), an optional `<?xml ...?>` declaration whose encoding (if given) is
 //! UTF-8, comments, elements, attributes, character data, CDATA sections, the five predefined entities and

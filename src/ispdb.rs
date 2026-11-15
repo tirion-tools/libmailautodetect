@@ -1,7 +1,7 @@
 //! Built-in provider table (feature `ispdb`): a pinned snapshot of Thunderbird's ISPDB
 //! (`thunderbird/autoconfig`, `ispdb/*.xml`, MPL-2.0) compiled by `build.rs` with this crate's own
 //! parser and mapper ([`crate::parse_template`]), so the table obeys exactly the rules applied to
-//! network autoconfig documents. The snapshot directory comes from `MAIL_AUTODETECT_ISPDB_DIR`.
+//! network autoconfig documents. The snapshot directory comes from `MAILAUTODETECT_ISPDB_DIR`.
 //!
 //! [`lookup`] answers for the user's domain; [`by_mx`] follows Thunderbird's `fetchConfigForMX`.
 //! Hosts are re-validated after `%EMAILDOMAIN%` substitution.

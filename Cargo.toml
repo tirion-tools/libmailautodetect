@@ -1,20 +1,24 @@
 [package]
 name = "mailautodetect"
 description = "Mail account auto-detection: strict bounded autoconfig XML parser, clientConfig mapper, redirect rules, built-in ISPDB provider table"
-version.workspace = true
-edition.workspace = true
-rust-version.workspace = true
-license.workspace = true
-publish.workspace = true
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.93.1"
+license = "MIT"
+publish = false
 
 [dependencies]
 url = "=2.5.8"
 
 [features]
-# The built-in provider table compiled from an ISPDB snapshot (build.rs; MAIL_AUTODETECT_ISPDB_DIR).
+# The built-in provider table compiled from an ISPDB snapshot (build.rs; MAILAUTODETECT_ISPDB_DIR).
 ispdb = []
 # Its C ABI (src/capi.rs, include/mailautodetect.h), for `cargo rustc --crate-type staticlib`.
 capi = ["ispdb"]
 
-[lints]
-workspace = true
+[lints.rust]
+unsafe_op_in_unsafe_fn = "deny"
+
+[profile.release]
+panic = "abort"
+codegen-units = 1

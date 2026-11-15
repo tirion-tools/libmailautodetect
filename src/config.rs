@@ -45,7 +45,7 @@ pub struct Server {
 pub struct MailConfig {
     pub imap: Vec<Server>,
     pub smtp: Vec<Server>,
-    /// Entries dropped by validation, as reason codes (pop3, bad_host, port_not_brokered, ...).
+    /// Entries dropped by validation, as reason codes (pop3, bad_host, port_not_allowed, ...).
     pub dropped: Vec<&'static str>,
 }
 
@@ -121,7 +121,7 @@ fn server(
         Proto::Smtp => &SMTP_PORTS,
     };
     if !allowed.contains(&port) {
-        c.drop("port_not_brokered");
+        c.drop("port_not_allowed");
         return None;
     }
     let sock = match e.child("socketType").map(|s| s.text()).as_deref() {

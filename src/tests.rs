@@ -257,7 +257,7 @@ fn maps_good_config() {
 }
 
 #[test]
-fn drops_unbrokered_and_bad_entries() {
+fn drops_disallowed_ports_and_bad_entries() {
     let doc = GOOD
         .replace("<port>993</port>", "<port>1993</port>")
         .replace("smtp.x.test", "10.0.0.5")
@@ -271,7 +271,7 @@ fn drops_unbrokered_and_bad_entries() {
         "x.test",
     )
     .unwrap();
-    assert_eq!(c.dropped, vec!["port_not_brokered"]);
+    assert_eq!(c.dropped, vec!["port_not_allowed"]);
     assert!(matches!(
         parse(b"<html/>", "x.test"),
         Err(ParseError::Schema("root_not_clientConfig"))

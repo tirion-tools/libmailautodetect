@@ -1,4 +1,4 @@
-//! Feature `ispdb`: compiles the ISPDB snapshot in `MAIL_AUTODETECT_ISPDB_DIR` (the `ispdb/*.xml`
+//! Feature `ispdb`: compiles the ISPDB snapshot in `MAILAUTODETECT_ISPDB_DIR` (the `ispdb/*.xml`
 //! directory of a pinned `thunderbird/autoconfig` checkout) into `$OUT_DIR/ispdb_table.rs`, using
 //! this crate's own parser and mapper. A document that fails the XML parser fails the build (the
 //! input is a pinned, hash-checked snapshot); one without an `emailProvider`, or without a usable
@@ -25,10 +25,10 @@ fn main() {
     if env::var_os("CARGO_FEATURE_ISPDB").is_none() {
         return;
     }
-    println!("cargo::rerun-if-env-changed=MAIL_AUTODETECT_ISPDB_DIR");
+    println!("cargo::rerun-if-env-changed=MAILAUTODETECT_ISPDB_DIR");
     let dir =
-        PathBuf::from(env::var_os("MAIL_AUTODETECT_ISPDB_DIR").expect(
-            "feature ispdb: set MAIL_AUTODETECT_ISPDB_DIR to the snapshot's ispdb/ directory",
+        PathBuf::from(env::var_os("MAILAUTODETECT_ISPDB_DIR").expect(
+            "feature ispdb: set MAILAUTODETECT_ISPDB_DIR to the snapshot's ispdb/ directory",
         ));
     println!("cargo::rerun-if-changed={}", dir.display());
     let mut names: Vec<String> = fs::read_dir(&dir)

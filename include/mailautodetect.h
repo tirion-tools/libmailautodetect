@@ -1,7 +1,7 @@
 /* C ABI of mailautodetect's built-in provider table (cargo features "capi" + "ispdb"; src/capi.rs).
  * Answers are lent to the visitor for the duration of the call; the caller frees nothing. */
-#ifndef MAIL_AUTODETECT_H
-#define MAIL_AUTODETECT_H
+#ifndef MAILAUTODETECT_H
+#define MAILAUTODETECT_H
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -17,12 +17,12 @@ typedef struct mailautodetect_str {
   size_t len;
 } mailautodetect_str;
 
-enum { MAIL_AUTODETECT_IMAP = 0, MAIL_AUTODETECT_SMTP = 1 };
-enum { MAIL_AUTODETECT_SSL = 0, MAIL_AUTODETECT_STARTTLS = 1, MAIL_AUTODETECT_PLAIN = 2 };
+enum { MAILAUTODETECT_IMAP = 0, MAILAUTODETECT_SMTP = 1 };
+enum { MAILAUTODETECT_SSL = 0, MAILAUTODETECT_STARTTLS = 1, MAILAUTODETECT_PLAIN = 2 };
 
 typedef struct mailautodetect_server {
-  uint8_t protocol; /* MAIL_AUTODETECT_IMAP / _SMTP */
-  uint8_t socket;   /* MAIL_AUTODETECT_SSL / _STARTTLS / _PLAIN */
+  uint8_t protocol; /* MAILAUTODETECT_IMAP / _SMTP */
+  uint8_t socket;   /* MAILAUTODETECT_SSL / _STARTTLS / _PLAIN */
   uint16_t port;    /* IMAP 993/143, SMTP 465/587 */
   bool oauth2;
   mailautodetect_str host;     /* lower-case LDH, %EMAILDOMAIN% substituted */
