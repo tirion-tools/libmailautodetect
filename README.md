@@ -103,7 +103,13 @@ tools/container.sh tools/gate.sh            # fmt, clippy, test, fuzz, audit
 The library ships no binaries. Consumers pin a commit. `.github/workflows/` mirrors the gate for when the repository is
 hosted.
 
+## Contributing
+
+This repository is not accepting contributions at this time: issues and pull requests are not accepted. Report
+security vulnerabilities privately as described in [`SECURITY.md`](SECURITY.md).
+
 ## Licence
 
 MIT, see `LICENSE`. The ISPDB snapshot is not part of this repository, but the fuzz seed corpus is. Its files
-`fuzz/corpus/autoconfig/s0000`–`s0162` are unmodified ISPDB files under MPL-2.0 (see `fuzz/README.md`).
+`fuzz/corpus/autoconfig/s0000`–`s0162` are unmodified ISPDB files under MPL-2.0 (see `fuzz/README.md`,
+`THIRD-PARTY-NOTICES.md` and `LICENSES/MPL-2.0.txt`).
