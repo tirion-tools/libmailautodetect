@@ -8,7 +8,7 @@ license = "MIT"
 publish = false
 
 [dependencies]
-url = "=2.5.8"
+url = "=2.5.9"
 
 [features]
 # The built-in provider table compiled from an ISPDB snapshot (build.rs; MAILAUTODETECT_ISPDB_DIR).
